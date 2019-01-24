@@ -82,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
                 mProgressDialog.show();
 
 
-                StorageReference chiledRef = storage.child("Photos").child("Gallery Photos").child(Objects.requireNonNull(uri).getLastPathSegment());
+                StorageReference chiledRef = storage.child("Photos").child("Gallery Photos").child(uri.getLastPathSegment());
 
                 chiledRef.putFile(uri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                     @Override
