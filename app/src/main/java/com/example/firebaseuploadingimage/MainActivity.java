@@ -35,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int CAMERA_INTENT = 25;
     private ProgressDialog mProgressDialog;
     private ImageView imageView;
+    private InternetConnection internetConnection = new InternetConnection();
 
 
     @Override
@@ -76,62 +77,68 @@ public class MainActivity extends AppCompatActivity {
 
             Uri uri = data.getData();
 
-            if (uri != null) {
+            if (internetConnection.checkConnection(getApplicationContext())) {
 
-                mProgressDialog.setMessage("uploading...");
-                mProgressDialog.show();
+                if (uri != null) {
+
+                    mProgressDialog.setMessage("uploading...");
+                    mProgressDialog.show();
 
 
-                StorageReference chiledRef = storage.child("Photos").child("Gallery Photos").child(uri.getLastPathSegment());
+                    StorageReference chiledRef = storage.child("Photos").child("Gallery Photos").child(uri.getLastPathSegment());
 
-                chiledRef.putFile(uri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                    @Override
-                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                    chiledRef.putFile(uri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                        @Override
+                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
 
-                        mProgressDialog.dismiss();
+                            mProgressDialog.dismiss();
 
-                        Task<Uri> task = taskSnapshot.getMetadata().getReference().getDownloadUrl();
-                        task.addOnSuccessListener(new OnSuccessListener<Uri>() {
-                            @Override
-                            public void onSuccess(Uri uri) {
-                                Picasso.with(MainActivity.this).load(uri).fit().centerCrop().into(imageView);
-                            }
-                        });
-                        Toast.makeText(MainActivity.this, "uploaded Done !", Toast.LENGTH_SHORT).show();
+                            Task<Uri> task = taskSnapshot.getMetadata().getReference().getDownloadUrl();
+                            task.addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                @Override
+                                public void onSuccess(Uri uri) {
+                                    Picasso.with(MainActivity.this).load(uri).fit().centerCrop().into(imageView);
+                                }
+                            });
+                            Toast.makeText(MainActivity.this, "uploaded Done !", Toast.LENGTH_SHORT).show();
 
-                    }
-                });
+                        }
+                    });
 
+                }
+            } else {
+                Toast.makeText(getApplicationContext(), "check your Internet Connection", Toast.LENGTH_LONG).show();
             }
         }
 
 
-
-         //  When we capture the image from Camera in Android then Uri or data.getdata() becomes null
+        //  When we capture the image from Camera in Android then Uri or data.getdata() becomes null
         // to resolve this issue :
         // Retrieve the Uri path from the Bitmap Image
 
 
         if (requestCode == CAMERA_INTENT && resultCode == RESULT_OK) {
 
-            Bitmap bitmap=null;
+            if (internetConnection.checkConnection(getApplicationContext())) {
 
-            if(data.getData()==null){
-                bitmap = (Bitmap)data.getExtras().get("data");
-            }else{
-                try {
-                    bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), data.getData());
-                } catch (IOException e) {
-                    e.printStackTrace();
+                Bitmap bitmap = null;
+
+                if (data.getData() == null) {
+                    bitmap = (Bitmap) data.getExtras().get("data");
+                } else {
+                    try {
+                        bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), data.getData());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
-            }
-
-            Uri uri = getImageUri(getApplicationContext(),bitmap);
 
 
-            mProgressDialog.setMessage("uploading...");
+                Uri uri = getImageUri(getApplicationContext(), bitmap);
+
+
+                mProgressDialog.setMessage("uploading...");
                 mProgressDialog.show();
-
 
 
                 StorageReference cameraRef = storage.child("Photos").child("Camera Photos").child(uri.getLastPathSegment());
@@ -157,7 +164,10 @@ public class MainActivity extends AppCompatActivity {
                 });
 
             }
+        } else {
+            Toast.makeText(getApplicationContext(), "check your Internet Connection", Toast.LENGTH_LONG).show();
         }
+    }
 
     public Uri getImageUri(Context inContext, Bitmap inImage) {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
@@ -165,5 +175,5 @@ public class MainActivity extends AppCompatActivity {
         String path = MediaStore.Images.Media.insertImage(inContext.getContentResolver(), inImage, "Title", null);
         return Uri.parse(path);
     }
-    }
+}
 
