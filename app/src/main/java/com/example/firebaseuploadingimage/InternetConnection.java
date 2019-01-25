@@ -14,7 +14,7 @@ public class InternetConnection {
         NetworkInfo activeNetworkInfo = connMgr.getActiveNetworkInfo();
 
         if (activeNetworkInfo != null) { // connected to the internet
-            Toast.makeText(context, activeNetworkInfo.getTypeName(), Toast.LENGTH_SHORT).show();
+         //   Toast.makeText(context, activeNetworkInfo.getTypeName(), Toast.LENGTH_SHORT).show();
 
             if (activeNetworkInfo.getType() == ConnectivityManager.TYPE_WIFI) {
                 // connected to wifi
